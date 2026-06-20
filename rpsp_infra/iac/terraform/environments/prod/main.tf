@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    bucket         = "dda-terraform-state-495013583028"
-    key            = "dda/prod/terraform.tfstate"
+    bucket         = "harish-terraform-state-bucket"
+    key            = "dda-microservices/prod/terraform.tfstate"
     region         = "ap-south-1"
     encrypt        = true
-    dynamodb_table = "dda-terraform-locks"
+    use_lockfile   = true
   }
 }
 
