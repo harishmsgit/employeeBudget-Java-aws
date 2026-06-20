@@ -117,6 +117,34 @@ pipeline:
                   git add "${FILE}"
                   git commit -m "chore(gitops): update dev image tags ${IMAGE_TAG}" || echo "No changes to commit"
                   git push origin HEAD:main
+          - step:
+              name: Auto Promote QA Overlay
+              identifier: auto_promote_qa_overlay
+              type: Run
+              spec:
+                shell: Sh
+                image: alpine:3.20
+                command: |
+                  set -euo pipefail
+                  apk add --no-cache git
+                  BRANCH="<+codebase.branch>"
+                  AUTO_PROMOTE_QA="<+pipeline.variables.AUTO_PROMOTE_QA>"
+                  if [ "${BRANCH}" != "dev" ] || [ "${AUTO_PROMOTE_QA}" != "true" ]; then
+                    echo "Skipping QA auto-promotion. branch=${BRANCH}, AUTO_PROMOTE_QA=${AUTO_PROMOTE_QA}"
+                    exit 0
+                  fi
+
+                  IMAGE_TAG="<+codebase.commitSha>"
+                  FILE="gitops/overlays/qa/kustomization.yaml"
+
+                  sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/g" "${FILE}"
+
+                  git config user.name "harness-bot"
+                  git config user.email "harness-bot@company.com"
+                  git remote set-url origin "https://x-access-token:<+secrets.getValue('account.GITHUB_TOKEN')>@github.com/harishmsgit/employeeBudget-Java-aws.git"
+                  git add "${FILE}"
+                  git commit -m "chore(gitops): auto promote qa image tags ${IMAGE_TAG}" || echo "No changes to commit"
+                  git push origin HEAD:main
   variables:
   - name: AWS_REGION
     type: String
@@ -124,3 +152,6 @@ pipeline:
   - name: AWS_ACCOUNT_ID
     type: String
     value: "495013583028"
+  - name: AUTO_PROMOTE_QA
+    type: String
+    value: "false"
