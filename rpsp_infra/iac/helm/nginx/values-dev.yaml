@@ -1,0 +1,12 @@
+environment: dev
+subdomain: dev
+
+ingress:
+  tls:
+    enabled: false
+    secretName: dda-dev-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+rateLimit:
+  enabled: false

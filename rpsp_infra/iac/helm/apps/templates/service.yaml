@@ -1,0 +1,41 @@
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+---
+# Active service — carries live traffic
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-service
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- include "dda-apps.labels" (dict "svc" $name "root" $) | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{ $svc.port }}
+      protocol: TCP
+---
+# Preview service — carries canary/green traffic before promotion
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-service-preview
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- include "dda-apps.labels" (dict "svc" $name "root" $) | nindent 4 }}
+    variant: preview
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{ $svc.port }}
+      protocol: TCP
+{{- end }}
+{{- end }}

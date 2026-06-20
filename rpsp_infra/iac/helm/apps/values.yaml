@@ -1,0 +1,113 @@
+global:
+  environment: dev
+  ecrRegistry: 495013583028.dkr.ecr.us-east-1.amazonaws.com
+  imageTag: latest
+  imagePullPolicy: IfNotPresent
+  namespace: dda-app
+
+secrets:
+  secretName: app-secrets
+
+# Each entry matches a service. Keys are used as name prefix.
+services:
+  employee:
+    enabled: true
+    image: employee-service
+    port: 8081
+    replicas: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+    pdb:
+      enabled: false
+      minAvailable: 1
+    probes:
+      readiness:
+        path: /actuator/health
+        initialDelaySeconds: 20
+        periodSeconds: 10
+        failureThreshold: 3
+      liveness:
+        path: /actuator/health
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 3
+
+  project:
+    enabled: true
+    image: project-service
+    port: 8082
+    replicas: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+    pdb:
+      enabled: false
+      minAvailable: 1
+    probes:
+      readiness:
+        path: /actuator/health
+        initialDelaySeconds: 20
+        periodSeconds: 10
+        failureThreshold: 3
+      liveness:
+        path: /actuator/health
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 3
+
+  budget:
+    enabled: true
+    image: budget-service
+    port: 8083
+    replicas: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 70
+    pdb:
+      enabled: false
+      minAvailable: 1
+    probes:
+      readiness:
+        path: /actuator/health
+        initialDelaySeconds: 20
+        periodSeconds: 10
+        failureThreshold: 3
+      liveness:
+        path: /actuator/health
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 3

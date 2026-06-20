@@ -1,0 +1,19 @@
+resources:
+- ../../base
+
+namespace: dda-app
+
+images:
+- name: 495013583028.dkr.ecr.us-east-1.amazonaws.com/employee-service
+  newName: 495013583028.dkr.ecr.us-east-1.amazonaws.com/employee-service
+  newTag: dev-latest
+- name: 495013583028.dkr.ecr.us-east-1.amazonaws.com/project-service
+  newName: 495013583028.dkr.ecr.us-east-1.amazonaws.com/project-service
+  newTag: dev-latest
+- name: 495013583028.dkr.ecr.us-east-1.amazonaws.com/budget-service
+  newName: 495013583028.dkr.ecr.us-east-1.amazonaws.com/budget-service
+  newTag: dev-latest
+
+patches:
+- path: patch-env.yaml
+- path: patch-ingress-host.yaml

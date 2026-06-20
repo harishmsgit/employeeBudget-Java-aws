@@ -1,0 +1,101 @@
+pipeline:
+  name: promote-env
+  identifier: promote_env
+  projectIdentifier: YOUR_PROJECT_ID
+  orgIdentifier: YOUR_ORG_ID
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.github_connector
+        repoName: https://github.com/harishmsgit/employeeBudget-Java-aws
+        build:
+          type: branch
+          spec:
+            branch: main
+  stages:
+  - stage:
+      name: Promote GitOps Overlay
+      identifier: promote_gitops_overlay
+      type: CI
+      spec:
+        cloneCodebase: true
+        infrastructure:
+          type: KubernetesDirect
+          spec:
+            connectorRef: account.k8s_delegate_connector
+            namespace: harness-delegate-ng
+            automountServiceAccountToken: true
+            os: Linux
+        execution:
+          steps:
+          - step:
+              name: Validate Inputs
+              identifier: validate_inputs
+              type: Run
+              spec:
+                shell: Sh
+                image: alpine:3.20
+                command: |
+                  set -euo pipefail
+                  TARGET_ENV="<+pipeline.variables.TARGET_ENV>"
+                  IMAGE_TAG="<+pipeline.variables.IMAGE_TAG>"
+                  case "${TARGET_ENV}" in
+                    qa|prod) ;;
+                    *) echo "TARGET_ENV must be qa or prod"; exit 1 ;;
+                  esac
+                  if [ -z "${IMAGE_TAG}" ]; then
+                    echo "IMAGE_TAG is required"
+                    exit 1
+                  fi
+          - step:
+              name: Update Target Overlay
+              identifier: update_target_overlay
+              type: Run
+              spec:
+                shell: Sh
+                image: alpine:3.20
+                command: |
+                  set -euo pipefail
+                  apk add --no-cache git
+                  TARGET_ENV="<+pipeline.variables.TARGET_ENV>"
+                  IMAGE_TAG="<+pipeline.variables.IMAGE_TAG>"
+                  FILE="gitops/overlays/${TARGET_ENV}/kustomization.yaml"
+
+                  sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/g" "${FILE}"
+
+                  git config user.name "harness-bot"
+                  git config user.email "harness-bot@company.com"
+                  git remote set-url origin "https://x-access-token:<+secrets.getValue('account.GITHUB_TOKEN')>@github.com/harishmsgit/employeeBudget-Java-aws.git"
+                  git add "${FILE}"
+                  git commit -m "chore(gitops): promote ${TARGET_ENV} to ${IMAGE_TAG}"
+                  git push origin HEAD:main
+  - stage:
+      name: Prod Approval
+      identifier: prod_approval
+      type: Approval
+      when:
+        pipelineStatus: Success
+        condition: <+pipeline.variables.TARGET_ENV> == "prod"
+      spec:
+        execution:
+          steps:
+          - step:
+              type: HarnessApproval
+              name: Approve Prod Promotion
+              identifier: approve_prod_promotion
+              spec:
+                approvalMessage: Approve production promotion
+                includePipelineExecutionHistory: true
+                approvers:
+                  userGroups:
+                  - account.release_managers
+                  minimumCount: 1
+                  disallowPipelineExecutor: false
+
+  variables:
+  - name: TARGET_ENV
+    type: String
+    value: <+input>.allowedValues(qa,prod)
+  - name: IMAGE_TAG
+    type: String
+    value: <+input>

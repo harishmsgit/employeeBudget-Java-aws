@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: project-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: project-service
+  template:
+    metadata:
+      labels:
+        app: project-service
+    spec:
+      containers:
+      - name: project-service
+          image: 495013583028.dkr.ecr.us-east-1.amazonaws.com/project-service:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: project-db-url
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: db-password
+        - name: KAFKA_BOOTSTRAP
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: kafka-bootstrap
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 10
+  strategy:
+    blueGreen:
+      activeService: project-service
+      previewService: project-service-preview
+      autoPromotionEnabled: false

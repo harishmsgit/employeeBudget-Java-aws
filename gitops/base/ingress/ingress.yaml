@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dda-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - app.harishweb.online
+    secretName: app-tls
+  rules:
+  - host: app.harishweb.online
+    http:
+      paths:
+      - path: /employee
+        pathType: Prefix
+        backend:
+          service:
+            name: employee-service
+            port:
+              number: 80
+      - path: /graphql/project
+        pathType: Prefix
+        backend:
+          service:
+            name: project-service
+            port:
+              number: 80
+      - path: /graphql/budget
+        pathType: Prefix
+        backend:
+          service:
+            name: budget-service
+            port:
+              number: 80

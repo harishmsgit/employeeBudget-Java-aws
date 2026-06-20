@@ -1,0 +1,13 @@
+namespace: dda-app
+resources:
+- secret-template.yaml
+- employee/rollout.yaml
+- employee/service-active.yaml
+- employee/service-preview.yaml
+- project/rollout.yaml
+- project/service-active.yaml
+- project/service-preview.yaml
+- budget/rollout.yaml
+- budget/service-active.yaml
+- budget/service-preview.yaml
+- ingress/ingress.yaml

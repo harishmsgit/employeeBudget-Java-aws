@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: budget-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/budget_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: budget-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.budget.event"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  port: 8083
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8083
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+server:
+  port: 8083
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8083

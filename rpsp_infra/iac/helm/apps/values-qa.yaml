@@ -1,0 +1,32 @@
+global:
+  environment: qa
+  imagePullPolicy: Always
+
+services:
+  employee:
+    replicas: 2
+    env:
+      SPRING_PROFILES_ACTIVE: qa
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 70
+  project:
+    replicas: 2
+    env:
+      SPRING_PROFILES_ACTIVE: qa
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 70
+  budget:
+    replicas: 2
+    env:
+      SPRING_PROFILES_ACTIVE: qa
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 70

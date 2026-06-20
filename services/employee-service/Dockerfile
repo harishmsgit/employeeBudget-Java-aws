@@ -1,0 +1,12 @@
+FROM maven:3.9.8-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY services/pom.xml /app/pom.xml
+COPY services/employee-service/pom.xml /app/employee-service/pom.xml
+COPY services/employee-service/src /app/employee-service/src
+RUN mvn -f /app/employee-service/pom.xml clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+WORKDIR /opt/app
+COPY --from=build /app/employee-service/target/employee-service-1.0.0.jar app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]

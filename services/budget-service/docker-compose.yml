@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  budget-service:
+    build:
+      context: ../..
+      dockerfile: services/budget-service/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/budget_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      KAFKA_BOOTSTRAP: host.docker.internal:9092
+    ports:
+      - "8083:8083"

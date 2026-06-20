@@ -1,0 +1,45 @@
+{{- range $name, $svc := .Values.services }}
+{{- if and $svc.enabled $svc.hpa.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $name }}-service-hpa
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- include "dda-apps.labels" (dict "svc" $name "root" $) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: {{ $name }}-service
+  minReplicas: {{ $svc.hpa.minReplicas }}
+  maxReplicas: {{ $svc.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $svc.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+{{- end }}
+{{- end }}

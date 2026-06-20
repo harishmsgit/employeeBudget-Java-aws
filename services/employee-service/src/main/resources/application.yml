@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: employee-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/employee_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+server:
+  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8081

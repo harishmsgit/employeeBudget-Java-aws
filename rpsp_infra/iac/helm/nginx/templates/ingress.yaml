@@ -1,0 +1,55 @@
+{{- $fqdn := include "dda-nginx-ingress.fqdn" . }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "dda-nginx-ingress.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "dda-nginx-ingress.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.rateLimit.enabled }}
+    nginx.ingress.kubernetes.io/limit-rpm: {{ .Values.rateLimit.rpm | quote }}
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: {{ .Values.rateLimit.burstMultiplier | default 5 | quote }}
+    {{- end }}
+    {{- if .Values.cors.enabled }}
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: {{ .Values.cors.origins | quote }}
+    nginx.ingress.kubernetes.io/cors-allow-methods: {{ .Values.cors.methods | quote }}
+    nginx.ingress.kubernetes.io/cors-allow-headers: {{ .Values.cors.headers | default "Content-Type,Authorization" | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ $fqdn }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  rules:
+    - host: {{ $fqdn }}
+      http:
+        paths:
+          - path: {{ .Values.services.employee.path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.services.employee.name }}
+                port:
+                  number: {{ .Values.services.employee.port }}
+          - path: {{ .Values.services.project.path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.services.project.name }}
+                port:
+                  number: {{ .Values.services.project.port }}
+          - path: {{ .Values.services.budget.path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.services.budget.name }}
+                port:
+                  number: {{ .Values.services.budget.port }}

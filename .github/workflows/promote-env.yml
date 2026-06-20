@@ -1,0 +1,38 @@
+name: promote-environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - qa
+          - prod
+      image_tag:
+        description: "Image tag to promote"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update target overlay tags
+        run: |
+          FILE=gitops/overlays/${{ github.event.inputs.target_env }}/kustomization.yaml
+          sed -i "s/newTag: .*/newTag: ${{ github.event.inputs.image_tag }}/g" ${FILE}
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add gitops/overlays/${{ github.event.inputs.target_env }}/kustomization.yaml
+          git commit -m "chore(gitops): promote ${{ github.event.inputs.target_env }} to ${{ github.event.inputs.image_tag }}"
+          git push

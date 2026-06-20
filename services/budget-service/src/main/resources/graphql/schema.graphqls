@@ -1,0 +1,16 @@
+type Budget {
+  id: ID
+  projectId: ID
+  amount: Float
+  currency: String
+}
+
+type Query {
+  budgetLinedProject(projectId: ID!): Budget
+}
+
+type Mutation {
+  addbuget(projectId: ID!, amount: Float!, currency: String!): Budget
+  updatebuget(id: ID!, amount: Float!, currency: String!): Budget
+  deletebuget(id: ID!): Boolean
+}

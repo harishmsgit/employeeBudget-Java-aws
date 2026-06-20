@@ -1,0 +1,17 @@
+{{- range $name, $svc := .Values.services }}
+{{- if and $svc.enabled $svc.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}-service-pdb
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- include "dda-apps.labels" (dict "svc" $name "root" $) | nindent 4 }}
+spec:
+  minAvailable: {{ $svc.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app: {{ $name }}-service
+{{- end }}
+{{- end }}

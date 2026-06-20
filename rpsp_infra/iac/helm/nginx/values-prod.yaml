@@ -1,0 +1,22 @@
+environment: prod
+subdomain: app
+
+ingress:
+  tls:
+    enabled: true
+    secretName: dda-prod-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+
+rateLimit:
+  enabled: true
+  rpm: 500
+  burstMultiplier: 3
+
+cors:
+  enabled: true
+  origins: "https://app.harishweb.online"
+  methods: "GET, POST, PUT, DELETE, OPTIONS"

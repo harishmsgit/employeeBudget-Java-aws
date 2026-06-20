@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS projects (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    owner VARCHAR(120) NOT NULL,
+    status VARCHAR(80) NOT NULL
+);

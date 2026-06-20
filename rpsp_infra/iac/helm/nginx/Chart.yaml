@@ -1,0 +1,13 @@
+apiVersion: v2
+name: dda-nginx-ingress
+description: NGINX Ingress routing chart for DDA application (employee/project/budget)
+type: application
+version: 1.0.0
+appVersion: "1.11.0"
+keywords:
+- nginx
+- ingress
+- dda
+maintainers:
+- name: platform-team
+  email: platform@harishweb.online

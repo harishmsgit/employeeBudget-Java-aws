@@ -1,0 +1,16 @@
+type Project {
+  id: ID
+  name: String
+  owner: String
+  status: String
+}
+
+type Query {
+  getProject(id: ID!): Project
+}
+
+type Mutation {
+  addProject(name: String!, owner: String!, status: String!): Project
+  updateProject(id: ID!, name: String!, owner: String!, status: String!): Project
+  deleteProject(id: ID!): Boolean
+}

@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS budgets (
+    id BIGSERIAL PRIMARY KEY,
+    project_id BIGINT NOT NULL,
+    amount NUMERIC(15, 2) NOT NULL,
+    currency VARCHAR(10) NOT NULL
+);

@@ -1,0 +1,11 @@
+environment: qa
+subdomain: qa
+
+ingress:
+  tls:
+    enabled: true
+    secretName: dda-qa-tls
+
+rateLimit:
+  enabled: true
+  rpm: 300

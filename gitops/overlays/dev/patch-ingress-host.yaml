@@ -1,0 +1,11 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dda-app-ingress
+spec:
+  tls:
+  - hosts:
+    - dev.harishweb.online
+    secretName: dev-app-tls
+  rules:
+  - host: dev.harishweb.online

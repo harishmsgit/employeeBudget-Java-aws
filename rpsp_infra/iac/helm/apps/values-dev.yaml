@@ -1,0 +1,17 @@
+global:
+  environment: dev
+  imagePullPolicy: IfNotPresent
+
+services:
+  employee:
+    replicas: 1
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+  project:
+    replicas: 1
+    env:
+      SPRING_PROFILES_ACTIVE: dev
+  budget:
+    replicas: 1
+    env:
+      SPRING_PROFILES_ACTIVE: dev

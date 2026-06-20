@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: employee-service
+spec:
+  template:
+    spec:
+      containers:
+      - name: employee-service
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: project-service
+spec:
+  template:
+    spec:
+      containers:
+      - name: project-service
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: budget-service
+spec:
+  template:
+    spec:
+      containers:
+      - name: budget-service
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev

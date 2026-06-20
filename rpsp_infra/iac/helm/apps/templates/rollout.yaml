@@ -1,0 +1,92 @@
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ $name }}-service
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- include "dda-apps.labels" (dict "svc" $name "root" $) | nindent 4 }}
+spec:
+  replicas: {{ $svc.replicas }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: {{ $name }}-service
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}-service
+        version: {{ $.Values.global.imageTag | quote }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ $svc.port | quote }}
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: {{ $name }}-service
+          image: {{ $.Values.global.ecrRegistry }}/{{ $svc.image }}:{{ $.Values.global.imageTag }}
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: {{ $svc.port }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ $.Values.secrets.secretName }}
+                optional: false
+          env:
+            {{- range $k, $v := $svc.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml $svc.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ $svc.probes.readiness.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $svc.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ $svc.probes.readiness.periodSeconds }}
+            failureThreshold: {{ $svc.probes.readiness.failureThreshold }}
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: {{ $svc.probes.liveness.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $svc.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ $svc.probes.liveness.periodSeconds }}
+            failureThreshold: {{ $svc.probes.liveness.failureThreshold }}
+          startupProbe:
+            httpGet:
+              path: {{ $svc.probes.readiness.path }}
+              port: {{ $svc.port }}
+            failureThreshold: 12
+            periodSeconds: 5
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  strategy:
+    blueGreen:
+      activeService: {{ $name }}-service
+      previewService: {{ $name }}-service-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
+      antiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution: {}
+{{- end }}
+{{- end }}

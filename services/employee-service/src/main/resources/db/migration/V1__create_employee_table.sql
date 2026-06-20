@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS employees (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(160) NOT NULL,
+    role VARCHAR(120)
+);

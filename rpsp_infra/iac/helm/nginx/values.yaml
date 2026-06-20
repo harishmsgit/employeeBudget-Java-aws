@@ -1,0 +1,47 @@
+# Default values — override with values-<env>.yaml
+environment: dev
+domain: harishweb.online
+subdomain: dev
+namespace: dda-app
+
+ingress:
+  className: nginx
+  tls:
+    enabled: true
+    secretName: dda-dev-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "Referrer-Policy: no-referrer-when-downgrade";
+
+services:
+  employee:
+    path: /employee(/|$)(.*)
+    name: employee-service
+    port: 80
+  project:
+    path: /graphql/project(/|$)(.*)
+    name: project-service
+    port: 80
+  budget:
+    path: /graphql/budget(/|$)(.*)
+    name: budget-service
+    port: 80
+
+rateLimit:
+  enabled: false
+  rpm: 100
+  burstMultiplier: 5
+
+cors:
+  enabled: false
+  origins: "*"
+  methods: "GET, POST, PUT, DELETE, OPTIONS"
+  headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
