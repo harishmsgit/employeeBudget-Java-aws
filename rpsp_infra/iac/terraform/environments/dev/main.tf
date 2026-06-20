@@ -24,7 +24,7 @@ module "iac" {
   batch_security_group_ids  = ["sg-0fe408481fc8b427d"]
   archive_s3_bucket  = "dda-dev-archive-495013583028"
   db_secret_arn      = "arn:aws:secretsmanager:ap-south-1:495013583028:secret:dda-dev-db-XXXXX"
-  db_host            = "REPLACE_WITH_RDS_ENDPOINT"
+  db_host            = "postgres"
   db_name            = "app_db"
   db_user            = "postgres"
   sns_topic_arn      = ""

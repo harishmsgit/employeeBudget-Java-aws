@@ -21,8 +21,11 @@ archive_s3_bucket = "dda-dev-archive-495013583028"
 # Secrets Manager ARN for DB credentials
 db_secret_arn = "arn:aws:secretsmanager:ap-south-1:495013583028:secret:db-credentials-ABdiWN"
 
-# External PostgreSQL host (not RDS)
-db_host = "REPLACE_WITH_EXTERNAL_POSTGRES_HOST"
+# PostgreSQL host
+# Local Docker setup: use "postgres" (service name in infra/docker-compose.yml)
+# If workload runs in AWS Batch/Fargate, this local host is NOT reachable from AWS.
+# In that case, use a publicly reachable DB endpoint (RDS or equivalent reachable host).
+db_host = "postgres"
 db_name = "app_db"
 db_user = "postgres"
 
