@@ -145,6 +145,73 @@ pipeline:
                   git add "${FILE}"
                   git commit -m "chore(gitops): auto promote qa image tags ${IMAGE_TAG}" || echo "No changes to commit"
                   git push origin HEAD:main
+  - stage:
+      name: Prod Auto Promotion Approval
+      identifier: prod_auto_promotion_approval
+      type: Approval
+      when:
+        pipelineStatus: Success
+        condition: <+pipeline.variables.AUTO_PROMOTE_PROD> == "true"
+      spec:
+        execution:
+          steps:
+          - step:
+              type: HarnessApproval
+              name: Approve Auto Promotion To Prod
+              identifier: approve_auto_promotion_to_prod
+              spec:
+                approvalMessage: Approve auto promotion of this dev build to prod
+                includePipelineExecutionHistory: true
+                approvers:
+                  userGroups:
+                  - account.release_managers
+                  minimumCount: 1
+                  disallowPipelineExecutor: false
+  - stage:
+      name: Auto Promote Prod Overlay
+      identifier: auto_promote_prod_overlay
+      type: CI
+      when:
+        pipelineStatus: Success
+        condition: <+pipeline.variables.AUTO_PROMOTE_PROD> == "true"
+      spec:
+        cloneCodebase: true
+        infrastructure:
+          type: KubernetesDirect
+          spec:
+            connectorRef: account.k8s_delegate_connector
+            namespace: harness-delegate-ng
+            automountServiceAccountToken: true
+            os: Linux
+        execution:
+          steps:
+          - step:
+              name: Update Prod Overlay Tags
+              identifier: update_prod_overlay_tags
+              type: Run
+              spec:
+                shell: Sh
+                image: alpine:3.20
+                command: |
+                  set -euo pipefail
+                  apk add --no-cache git
+                  BRANCH="<+codebase.branch>"
+                  if [ "${BRANCH}" != "dev" ]; then
+                    echo "Skipping prod auto-promotion for branch ${BRANCH}"
+                    exit 0
+                  fi
+
+                  IMAGE_TAG="<+codebase.commitSha>"
+                  FILE="gitops/overlays/prod/kustomization.yaml"
+
+                  sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/g" "${FILE}"
+
+                  git config user.name "harness-bot"
+                  git config user.email "harness-bot@company.com"
+                  git remote set-url origin "https://x-access-token:<+secrets.getValue('account.GITHUB_TOKEN')>@github.com/harishmsgit/employeeBudget-Java-aws.git"
+                  git add "${FILE}"
+                  git commit -m "chore(gitops): auto promote prod image tags ${IMAGE_TAG}" || echo "No changes to commit"
+                  git push origin HEAD:main
   variables:
   - name: AWS_REGION
     type: String
@@ -153,5 +220,8 @@ pipeline:
     type: String
     value: "495013583028"
   - name: AUTO_PROMOTE_QA
+    type: String
+    value: "false"
+  - name: AUTO_PROMOTE_PROD
     type: String
     value: "false"
