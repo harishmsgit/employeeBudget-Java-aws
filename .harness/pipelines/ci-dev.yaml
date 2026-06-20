@@ -11,7 +11,7 @@ pipeline:
         build:
           type: branch
           spec:
-            branch: master
+            branch: <+trigger.branch>
   stages:
   - stage:
       name: Build Push And Update Dev GitOps
@@ -65,7 +65,15 @@ pipeline:
 
                   echo "Configuring AWS credentials using role"
                   export AWS_REGION="${AWS_REGION}"
-                  aws sts assume-role --role-arn "<+secrets.getValue('account.AWS_ROLE_ARN')>" --role-session-name harness-ci >/tmp/creds.json
+                  n=0
+                  until [ "$n" -ge 3 ]
+                  do
+                    aws sts assume-role --role-arn "<+secrets.getValue('account.AWS_ROLE_ARN')>" --role-session-name harness-ci >/tmp/creds.json && break
+                    n=$((n + 1))
+                    echo "assume-role failed, retry ${n}/3"
+                    sleep 5
+                  done
+                  [ "$n" -lt 3 ] || { echo "assume-role failed after retries"; exit 1; }
                   export AWS_ACCESS_KEY_ID=$(cat /tmp/creds.json | jq -r .Credentials.AccessKeyId)
                   export AWS_SECRET_ACCESS_KEY=$(cat /tmp/creds.json | jq -r .Credentials.SecretAccessKey)
                   export AWS_SESSION_TOKEN=$(cat /tmp/creds.json | jq -r .Credentials.SessionToken)
@@ -74,7 +82,15 @@ pipeline:
 
                   IMAGE="${ECR_REGISTRY}/${SERVICE}:${IMAGE_TAG}"
                   docker build -f services/${SERVICE}/Dockerfile -t "${IMAGE}" .
-                  docker push "${IMAGE}"
+                  n=0
+                  until [ "$n" -ge 3 ]
+                  do
+                    docker push "${IMAGE}" && break
+                    n=$((n + 1))
+                    echo "docker push failed, retry ${n}/3"
+                    sleep 5
+                  done
+                  [ "$n" -lt 3 ] || { echo "docker push failed after retries"; exit 1; }
           - step:
               name: Update Dev Overlay Tags
               identifier: update_dev_overlay
@@ -85,6 +101,11 @@ pipeline:
                 command: |
                   set -euo pipefail
                   apk add --no-cache git
+                  BRANCH="<+codebase.branch>"
+                  if [ "${BRANCH}" != "dev" ]; then
+                    echo "Skipping dev overlay update for branch ${BRANCH}"
+                    exit 0
+                  fi
                   IMAGE_TAG="<+codebase.commitSha>"
                   FILE="gitops/overlays/dev/kustomization.yaml"
 

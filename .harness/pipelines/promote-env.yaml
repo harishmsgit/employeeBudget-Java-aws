@@ -1,8 +1,8 @@
 pipeline:
   name: promote-env
   identifier: promote_env
-  projectIdentifier: YOUR_PROJECT_ID
-  orgIdentifier: YOUR_ORG_ID
+  projectIdentifier: default_project
+  orgIdentifier: default
   properties:
     ci:
       codebase:
@@ -13,6 +13,29 @@ pipeline:
           spec:
             branch: main
   stages:
+  - stage:
+      name: Prod Approval
+      identifier: prod_approval
+      type: Approval
+      when:
+        pipelineStatus: Success
+        condition: <+pipeline.variables.TARGET_ENV> == "prod"
+      spec:
+        execution:
+          steps:
+          - step:
+              type: HarnessApproval
+              name: Approve Prod Promotion
+              identifier: approve_prod_promotion
+              spec:
+                approvalMessage: Approve production promotion
+                includePipelineExecutionHistory: true
+                approvers:
+                  userGroups:
+                  - account.release_managers
+                  minimumCount: 1
+                  disallowPipelineExecutor: false
+
   - stage:
       name: Promote GitOps Overlay
       identifier: promote_gitops_overlay
@@ -69,28 +92,6 @@ pipeline:
                   git add "${FILE}"
                   git commit -m "chore(gitops): promote ${TARGET_ENV} to ${IMAGE_TAG}"
                   git push origin HEAD:main
-  - stage:
-      name: Prod Approval
-      identifier: prod_approval
-      type: Approval
-      when:
-        pipelineStatus: Success
-        condition: <+pipeline.variables.TARGET_ENV> == "prod"
-      spec:
-        execution:
-          steps:
-          - step:
-              type: HarnessApproval
-              name: Approve Prod Promotion
-              identifier: approve_prod_promotion
-              spec:
-                approvalMessage: Approve production promotion
-                includePipelineExecutionHistory: true
-                approvers:
-                  userGroups:
-                  - account.release_managers
-                  minimumCount: 1
-                  disallowPipelineExecutor: false
 
   variables:
   - name: TARGET_ENV
