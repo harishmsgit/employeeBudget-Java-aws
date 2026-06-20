@@ -52,6 +52,7 @@ Design goals:
 
 1. Start dependencies:
   - `cd infra && docker compose up -d`
+  - This starts local PostgreSQL and creates `employee_db`, `project_db`, and `budget_db`.
 2. Run services:
   - Employee: `cd services/employee-service && docker compose up -d --build`
   - Project: `cd services/project-service && docker compose up -d --build`
@@ -66,3 +67,64 @@ Design goals:
 5. Route domain in Cloudflare to NGINX ingress controller endpoint.
 
 For complete steps, see `CHECKLIST.md`.
+
+
+
+Terraform:
+
+aws s3api create-bucket \
+  --bucket harish-terraform-state-bucket \
+  --region ap-south-1 \
+  --create-bucket-configuration LocationConstraint=ap-south-1
+
+aws s3api put-bucket-versioning \
+  --bucket harish-terraform-state-bucket \
+  --versioning-configuration Status=Enabled
+
+aws dynamodb create-table \
+  --table-name harish-terraform-state-lock \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region ap-south-1
+
+
+  cd ~/employeeBudget-Java-aws
+git config pull.rebase false        # merge strategy (one-time config)
+git pull origin master
+
+cd ~/employeeBudget-Java-aws
+git fetch origin
+git reset --hard origin/main
+
+ls rpsp_infra/iac/terraform/environments/dev/backend.hcl
+# should show the file now
+
+cd rpsp_infra/iac/terraform
+terraform init -backend-config=environments/dev/backend.hcl
+
+
+
+
+aws s3api create-bucket \
+  --bucket harish-terraform-state-bucket \
+  --region ap-south-1 \
+  --create-bucket-configuration LocationConstraint=ap-south-1
+
+aws s3api put-bucket-versioning \
+  --bucket harish-terraform-state-bucket \
+  --versioning-configuration Status=Enabled
+
+
+  cd rpsp_infra/iac/terraform
+
+# Copy example and fill in real values
+cp terraform.tfvars.example terraform.tfvars
+# edit terraform.tfvars: replace all REPLACE_WITH_... placeholders
+
+terraform init -backend-config=environments/dev/backend.hcl -reconfigure
+terraform plan -var-file=terraform.tfvars
+
+cd ~/employeeBudget-Java-aws/rpsp_infra/iac/terraform
+terraform init -backend-config=environments/dev/backend.hcl -reconfigure
+terraform plan -var-file=terraform.tfvars

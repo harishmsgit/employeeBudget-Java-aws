@@ -3,31 +3,31 @@
 
 aws_region       = "ap-south-1"
 environment      = "dev"
-eks_cluster_name = "webapp-eks-cluster"
+eks_cluster_name = "java-spring-eks"
 node_group_name  = "JavaSpringNG"
 
 # Networking — replace with real VPC/subnet IDs
-vpc_id             = "vpc-REPLACE_WITH_YOUR_VPC_ID"
-private_subnet_ids = ["subnet-REPLACE_1", "subnet-REPLACE_2"]
+vpc_id             = "vpc-0714e469a68ae1721"
+private_subnet_ids = ["subnet-05fa07de18677174e", "subnet-05e66df01fb3253ce"]
 public_subnet_ids  = ["subnet-REPLACE_PUB1", "subnet-REPLACE_PUB2"]
 
 # Security groups
-lambda_security_group_ids = ["sg-REPLACE_WITH_LAMBDA_SG"]
-batch_security_group_ids  = ["sg-REPLACE_WITH_BATCH_SG"]
+lambda_security_group_ids = ["sg-0fe408481fc8b427d"]
+batch_security_group_ids  = ["sg-0fe408481fc8b427d"]
 
 # S3 bucket for batch archives
 archive_s3_bucket = "dda-dev-archive-495013583028"
 
 # Secrets Manager ARN for DB credentials
-db_secret_arn = "arn:aws:secretsmanager:ap-south-1:495013583028:secret:dda-dev-db-XXXXX"
+db_secret_arn = "arn:aws:secretsmanager:ap-south-1:495013583028:secret:db-credentials-ABdiWN"
 
-# RDS endpoint
-db_host = "REPLACE_WITH_RDS_ENDPOINT"
+# External PostgreSQL host (not RDS)
+db_host = "REPLACE_WITH_EXTERNAL_POSTGRES_HOST"
 db_name = "app_db"
 db_user = "postgres"
 
 # SNS topic ARN for alerts (leave empty string if not used)
-sns_topic_arn = ""
+sns_topic_arn = "arn:aws:sns:ap-south-1:495013583028:app-alerts"
 
 # EventBridge cron for nightly batch (UTC)
 batch_nightly_cron = "cron(0 1 * * ? *)"

@@ -1,0 +1,3 @@
+CREATE DATABASE employee_db;
+CREATE DATABASE project_db;
+CREATE DATABASE budget_db;
