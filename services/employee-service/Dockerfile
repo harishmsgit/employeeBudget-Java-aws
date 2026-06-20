@@ -1,6 +1,5 @@
 FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY services/pom.xml /app/pom.xml
 COPY services/employee-service/pom.xml /app/employee-service/pom.xml
 COPY services/employee-service/src /app/employee-service/src
 RUN mvn -f /app/employee-service/pom.xml clean package -DskipTests
